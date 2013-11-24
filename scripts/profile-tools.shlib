@@ -1,22 +1,26 @@
 #!/bin/bash
+
+# LDS-Tools2: A collection of useful scripts developed by M E Leypold
+# Copyright (C) 2013 -- M E Leypold
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-# dot-usr:misc/profile-tools.shlib: Shell functions to write dot-usr profiles
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-# Copyright (C) 2013 M E Leypold
-#
-# Ripped and modified to support .scripts/advantest 11/2013 by M E Leypold
-# 
-# This program is free software: you can redistribute it and/or modify it under the terms of
-# the GNU General Public License as published by the Free Software Foundation, either
-# version 3 of the License, or (at your option) any later version.
-# 
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
-# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License along with this program.
-# If not, see <http://www.gnu.org/licenses/>.
-#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# scripts/profile-tools.shlib: Utility procedures to support writing
+# "eval style" profiles. This version has been ripped from dot-usr and
+# extended, the idea is the the version from dot-usr will be
+# deprecated for some time and dot-usr will depend on lsd-tools2 while
+# it is in development.
 
 begin_profile(){    
     IS_SUB_PROFILE=false
@@ -86,7 +90,6 @@ configure_scriptdir(){
     esac
     export_var PATH "$DIR:$PATH"
 }
-
 
 add_to_path(){            # this is prepending!!
    local VAR="$1"

@@ -1,0 +1,52 @@
+* -*- mode:org; eval:(org-indent-mode 1); -*-
+
+* About lsd-tools2
+
+'lsd-tools2' is a collection of (supposedly useful) tools, scripts and
+libraries.
+
+At the moment this collection only serves my personal needs. I'm only
+putting it online because 
+
+  - I need the software at multiple sites 
+  - there is nothing really secret in these scripts
+  - I'm loath to duplicate the effort
+
+Some of them are based on unusual ideas, that are, sadly, at the
+moment practically undocumented. Others are incomplete, because a
+larger idea has only been implmented up to the point where it was
+needed momentarily.
+
+Therefore these scripts are probably not fit for public consumption,
+though you, dear reader, are of course welcome to pick whatever you
+think you can use (as long as you stick to the terms of the [[LICENSE
+(GPL 3)]]).
+
+Please note the [[LICENSE (GPL 3)]].
+
+ -- M E Leypold, [2013-11-24 Sun]
+
+
+* LICENSE (GPL 3)
+
+This is the lsd-tools2 tools and script collection
+
+Copyright (C) 2013, M E Leypold
+
+This program (scripts, files) is free software: you can redistribute
+it and/or modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+* ---								     :@SETUP:
+# Local Variables:
+# eval: (visual-line-mode)
+# End:

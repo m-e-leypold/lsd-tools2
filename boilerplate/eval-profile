@@ -1,7 +1,8 @@
-#
+#!/bin/bash
+
 # LDS-Tools2: A collection of useful scripts developed by M E Leypold
 # Copyright (C) 2013 -- M E Leypold
-
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -15,9 +16,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Makefile: Build and clean from project top dir.
+# boilerplate/eval-profile: Boilerplate/Sample how to write a 
+# simple "eval style" profile.
 
-default:
+. mypath.shlib "$0"
+. profile-tools.shlib
 
-clean:
-	find . -name "*~" | xargs rm -f
+begin_profile  "$@"
+{
+    :
+    add_to_path PATH          "$MYPATH/scripts" "$MYPATH/bin"
+    add_to_path MKLIB_PATH    "$MYPATH/mklib"
+    add_to_path PYTHONPATH    "$MYPATH/pylib"
+}
+end_profile

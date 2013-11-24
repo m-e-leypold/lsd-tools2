@@ -2,8 +2,6 @@
 
 * Unsorted
 
-- README
-- Licenses (Header and COPYING)
-- Proper .emacs hooking
+- Proper .emacs hooking (setting EMACSLOADPATH won't have the desired result)
 
 
