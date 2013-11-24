@@ -33,14 +33,18 @@ begin_profile(){
 
 end_profile(){
     local VAR
-    # echo "# $MYNAME"
-    for VAR in $(sort_args "$EXPORTED_VARS"); do
+    local VARS="$(sort_args $EXPORTED_VARS)"
+    echo ""
+    echo "# Profile  : $MYNAME"
+    echo "# Variables: "$VARS
+    echo ""
+    for VAR in $(sort_args $EXPORTED_VARS); do
 	eval "dump_var $VAR"
     done
 }
 
 sort_args(){
-    { while test "$#" -gt 0; do echo "$1"; shift; done; } | sort 
+    { while test "$#" -gt 0; do echo "$1"; shift; done; } | sort | uniq 
 }
 
 EXPORTED_VARS=""
@@ -84,10 +88,15 @@ configure_scriptdir(){
 }
 
 
-add_to_path(){
-   if eval 'test -z "$'"$1"'"'; then
-       eval "export_var $1 $(shell_quote $2)"
-   else
-       eval 'export_var '"$1"' "$2:$'"$1"'"'
-   fi
+add_to_path(){            # this is prepending!!
+   local VAR="$1"
+   shift
+   while test "$#" -gt 0; do      
+     if eval 'test -z "$'"$V"'"'; then
+	 eval "export_var $VAR $(shell_quote $1)"
+     else
+	 eval 'export_var '"$VAR"' "$1:$'"$VAR"'"'
+     fi
+     shift
+   done
 }

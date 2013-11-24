@@ -1,0 +1,11 @@
+#
+#
+#
+
+eval "$( for P in ~/.scripts/00-*/Profile; do
+             $P
+         done
+       )"
+
+. dot-scripts-profiles
+         

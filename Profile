@@ -10,15 +10,15 @@ esac
 
 MYPATH="$(dirname $MYNAME)"
 
-. $MYPATH/misc/profile-tools.shlib
+. $MYPATH/scripts/profile-tools.shlib
 
-begin_profile
+begin_profile "$@"
 {
     :
     add_to_path PATH          "$MYPATH/misc"  "$MYPATH/scripts" "$MYPATH/bin"
     add_to_path MKLIB_PATH    "$MYPATH/mklib"
     add_to_path PYTHONPATH    "$MYPATH/pylib"
-    add_to_path EMACSLOADPATH "$MYPATH/elisp"
+    # add_to_path EMACSLOADPATH "$MYPATH/elisp"
 
     # add_to_path PYTHONPATH  "$MYPATH"
 }

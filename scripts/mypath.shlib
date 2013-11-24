@@ -1,0 +1,12 @@
+#!/bin/bash
+
+MYNAME="$0"; # standard boilerplate: where I am?
+
+case "$0" in
+    /*) ;;
+   */*) MYNAME="$(/bin/pwd)/$MYNAME" ;;
+     *) MYNAME="$(which "$MYNAME")" ;;
+esac
+
+MYPATH="$(dirname $MYNAME)"
+

@@ -1,0 +1,12 @@
+#
+#
+#
+
+eval "$( . profile-tools.shlib
+         begin_profile
+           for TEMP_PROFILE in $(find  ~/.scripts/[1-9]*/. -maxdepth 1 -name 'Profile' | sed 's|/[.]/|/|g' | sort ); do 
+               eval "$($TEMP_PROFILE -sub)"; 
+           done
+         end_profile
+       )"
+
