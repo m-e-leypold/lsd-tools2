@@ -1,0 +1,14 @@
+#+STARTUP: oddeven
+#+STARTUP: indent
+#+STARTUP: content
+
+Use a line like
+
+#+begin_src org
+  * -*- mode: org -*-                                              :@setup:
+  #+SETUPFILE: ~/.orx/format-org-indent.org  
+#+end_src
+
+to configure a file for this format.
+
+

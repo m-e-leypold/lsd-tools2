@@ -1,0 +1,11 @@
+* -*- mode:org; eval:(org-indent-mode 1); -*-
+
+* Unsorted
+
+- Eliminate dependencies on ~/.eorg.
+
+* ---
+# Local Variables:
+# eval: (visual-line-mode)
+# eval: (org-indent-mode 1)
+# End:

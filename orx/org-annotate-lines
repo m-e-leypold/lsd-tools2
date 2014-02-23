@@ -1,0 +1,6 @@
+#!/bin/sh
+
+. mypath.shlib "$@"
+exec awk -vSOURCENAME="$1" -f "$0".awk <"$1"
+
+

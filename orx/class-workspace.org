@@ -1,0 +1,5 @@
+#+SETUPFILE: ~/.eorg/workflow-workspaces.org
+#+SETUPFILE: ~/.orx/format-org-indent.org
+
+* TODO Von .eorg entflechten (pull .eorg files to .orx)
+

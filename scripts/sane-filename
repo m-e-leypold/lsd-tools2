@@ -1,0 +1,30 @@
+#!/bin/sh
+#
+# WORK IN PROGRESS :-)
+
+# TODO: '-' for space and '_' for '/' is a question of taste, alternatively
+# use '_' and '__'.
+
+# TODO: Replace leading/trailing [_-], sanitize inner
+# seperator-sequences by '__'
+
+for FILENAME in "$@"; do
+    awk</dev/null -vFILENAME="$FILENAME" '
+    BEGIN { FILENAME=tolower(FILENAME); 
+            
+            # MATCH AND SAVE SUFFIX STRING !
+            #            
+
+            gsub(/[ 	\n]+$/,"",FILENAME)
+            gsub(/^[ 	\n]+/,"",FILENAME)
+            gsub(/[ 	\n]+/,"-",FILENAME)	   
+            gsub(/_+/,"_",FILENAME)
+	    gsub(/[/;.]+/,"_",FILENAME)  
+	    gsub(/[_-]{2,}/,"_",FILENAME)  
+	    gsub(/[_-]*$/,"",FILENAME)  
+	    gsub(/^[_-]*/,"",FILENAME)  
+	    print FILENAME;
+            exit(0);
+          }
+    '
+done

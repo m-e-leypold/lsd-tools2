@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# PDF export from org for org 7.x
+
+# -*- mode: shell-script -*-
+#
+# tangle files with org-mode
+#
+
+emacs -Q --batch \
+    --eval "
+(progn
+      (load-file \"~/.emacs\")
+      (find-file \"$1\")
+      (org-export-as-pdf nil)
+      (kill-buffer))
+"

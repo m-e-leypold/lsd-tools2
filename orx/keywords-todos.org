@@ -1,0 +1,21 @@
+* ABOUT orx/keywords-notes.org
+
+* Keyword for open points and tasks
+** Open TODO points
+
+#+TODO: NOW(n)  | 
+#+TODO: TODO(t) | DONE(d)
+#+TODO: WAITING(w)  |
+#+TODO: | CANCELLED(c)
+
+The order of definition matters here: NOW should always be defined first. Then
+org-do-promote (M-left) removes the keyword, which makes it usefule to prefix other
+keywords with "NOW". This is admittedly only a hcak, but a useful one.
+
+** Tickets
+
+#+TODO: TICKET      | TICKET_CLOSED
+#+TODO: BUG         | BUG_CLOSED
+
+These are different from TASKs or TODOs. SEE ALSO: [[id:378f7d7c-df76-423e-8dbe-e2357309ffd5][NOTE <2013-12-19 Thu> TICKET and BUG
+entry types for load shedding]]

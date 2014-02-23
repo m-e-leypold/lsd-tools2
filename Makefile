@@ -19,5 +19,20 @@
 
 default:
 
+SUBDIRS = boilerplate orx
+
 clean:
 	find . -name "*~" | xargs rm -f
+
+MYDIR  = $(PWD)
+MKDIR  = mkdir -p 
+MKLINK = set -x; mklink(){ cd "$$(dirname "$$2")" &&  { if test -L "$$2"; then rm "$$2" ; fi;  ln -s "$$1" "$$2"; } ; } ; mklink 
+
+install::
+	$(MKDIR)  ~/.scripts
+	$(MKLINK) $(PWD) ~/.scripts/lsd-tools2
+	$(MKLINK) my-scripts2 ~/.scripts/00-lsd-tools2
+
+install::
+	for SUBDIR in $(SUBDIRS); do ( cd "$$SUBDIR" && make install ); done
+

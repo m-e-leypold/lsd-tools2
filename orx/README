@@ -1,0 +1,32 @@
+* -*- mode:org; eval:(org-indent-mode 1); -*-
+
+* ABOUT lsd-tools2/orx/: Orgmode templates and setup files
+
+This is lsd-tools2/orx/, a collection of org-mode templates and setup files. As of
+[2013-12-27 Fri] there are dependencies on files yet unreleased. Therefore I expect
+lsd-tools2/orx to be only of very limited use to the general public.
+
+* LICENSE (GPL 3)
+
+This is lsd-tools2/orx/, a collection of org-mode templates and setup files.
+
+Copyright (C) 2013, M E Leypold
+
+This program (scripts, files) is free software: you can redistribute
+it and/or modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+* ---
+# Local Variables:
+# eval: (visual-line-mode)
+# eval: (org-indent-mode 1)
+# End:

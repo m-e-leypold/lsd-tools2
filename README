@@ -22,6 +22,10 @@ though you, dear reader, are of course welcome to pick whatever you
 think you can use (as long as you stick to the terms of the [[LICENSE
 (GPL 3)]]).
 
+You can run 'make install' if you subscribe to my path and symbolic conventions (like
+~/.scripts, ~/.boilerplate etc). Probably you'll better read ./Makefile to understand what
+that all means (there is still no manual).
+
 Please note the [[LICENSE (GPL 3)]].
 
  -- M E Leypold, [2013-11-24 Sun]

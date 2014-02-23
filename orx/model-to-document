@@ -1,0 +1,5 @@
+#!/bin/bash 
+
+. mypath.shlib "$@"
+exec awk  -vLATEX_HEADER_FILE="$0".ltx_header -f "$0".awk
+

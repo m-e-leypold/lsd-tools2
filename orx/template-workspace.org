@@ -1,0 +1,20 @@
+#+SETUPFILE: ~/.orx/class-workspace.org
+#+ARCHIVE:   ARCHIVE/#NAME.org::* INCOMING #NAME
+#+CATEGORY:  #NAME
+#+FILETAGS:  #HIVE #NAME
+
+*How to use:*
+- Replace #NAME, #HIVE, #DESCRIPTION
+- Maybe change +ARCHIVE to a more general location
+- Maybe add more tags
+- Write description in ABOUT or delete ABOUT section
+- Delete this instructions
+
+* ABOUT #NAME.org: #DESCRIPTION
+
+* INCOMING BUGS #NAME
+* INCOMING TICKETS #NAME
+* INCOMING #NAME
+
+
+

@@ -1,0 +1,63 @@
+
+* ABOUT orx/keywords-notes.org
+
+(TBD)
+
+* Keywords definitions
+** Memos and Notes
+
+#+TODO: | NOTES(N) NOTE(n) MINUTES(m) REPORT(r) STATUS(R)
+#+TODO: | BLURB(b) DIARY(y) LOG(l)
+#+TODO: | IDEA
+#+TODO: | UKAS(u) POLICY SOP
+
+Keywords for various reports and protocols. The differences are subtle and not always
+clear cut.
+
+- *NOTE*: Notes or comments regarding a specific topic
+- *NOTES*: Not unlike /NOTE/ but with the difference that the topic is less
+  homogenous. /NOTES/ are often gruped chronologically instead of topically.
+- *MINUTES*: Minutes for meetings.
+- *REPORT*: Similar to note, but more formally.
+- *STATUS*: A status report.
+
+I do not really distinguish diaries and log book (like, e.g. a work log)-
+
+- *DIARY*: A diary entry.
+- *BLURB*: A short diary entry, maybe even only the heading (think about a /tweet/
+  here). Usually label with an inactive timestamp including the time of day.
+- *LOG*: A formal log entry.
+
+Memos that fix some policy decisions have extra keywords / types:
+
+- *POLICY*: A formal policy decision.
+- *UKAS*, see http://en.wiktionary.org/wiki/Ukas. Same as /POLICY/
+- *SOP*: Entry/Document describing a standard operatiing procedure.
+
+** Documenting Files
+
+#+TODO: | DOCNOTE DOC(D) DOC_ARCHIVED
+#+TODO: | DOC(D) DOC_ARCHIVED
+#+TODO: | ABOUT
+
+- *ABOUT*: An entry of this type describes the file it resides in or if it is in a README
+  it might describe the directory tree or the project the the README belongs to.
+
+The DOC* keywords basically have the same function, but as of [2013-12-19 Thu] they must
+be considered deprecated.
+
+** Annotations and Comments
+
+#+TODO: | ATTENTION!
+#+TODO: | SEE_ALSO(s)
+
+** Archives
+
+#+TODO: | ARCHIVE(A) 
+
+A tree of archived entries. It's not much in use, but useful, if you want to archive stuff
+(if only temporarily) in the same file that is your workspace.
+
+** Incoming items
+
+#+TODO: INCOMING    |
