@@ -1,0 +1,172 @@
+#!/bin/bash 
+
+# *  mklib -- a modular makefile system
+# ** Copyright (C) 2013 -- M E Leypold -- Distributed under the terms of the GPL 3.0 -- #
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# ** Library  ------------------------------------------------------------------------- #
+# *** Runtime  ------------------------------------------------------------------------ #
+#
+#     Some basic infrastructure to keep the script selfcontained.
+#      
+
+#                        *** TODO: Switch to lsdtools2.shlib (at least FTM)
+#                      # *** TBD
+
+APPNAME="$(basename "$0")"
+MYPID="$$"
+MYNAME="$(basename $0)"
+MYPATH="$(dirname $0)"
+case "$MYPATH" in 
+     /*) ;;
+    */*) ;;
+      *) MYPATH="$(dirname $(which $0))" ;;
+esac
+
+panic(){               # *** TBD
+	echo "$APPNAME: $*" >&2
+	exit 1
+}
+
+run_exit_handlers(){   # *** TBD
+    for HANDLER in $EXITHANDLERS; do
+	$HANDLER
+    done
+}
+
+add_exit_handler(){    # *** TBD
+    EXITHANDLERS="$EXITHANDLERS $1"
+}
+
+#                      # *** TBD
+
+trap 'run_exit_handlers' EXIT
+
+# *** Temporary files  ---------------------------------------------------------------- #
+#                      # *** TBD
+
+TEMPFILES=""
+TEMPDIRS=""
+add_exit_handler cleanup_tmps
+
+cleanup_tmps(){        # *** TBD
+    local VAR
+    rm -f  $TEMPFILES
+    rm -rf $TEMPDIRS
+}
+
+newtmpfiles(){         # *** TBD
+    while test "$#" -gt 0; do
+        eval "$1"'="$(mktemp -t "$APPNAME.$MYPID.$1."XXXXXX)"'
+        eval 'TEMPFILES="$TEMPFILES $'"$1"'"'
+        shift
+    done
+}
+
+newtmpdirs(){          # *** TBD
+    while test "$#" -gt 0; do
+        eval "$1"'="$(mktemp -td "$APPNAME.$MYPID.$1."XXXXXX)"'
+        eval 'TEMPDIRS="$TEMPDIRS $'"$1"'"'
+        shift
+    done
+}
+
+# *** Path searching  ----------------------------------------------------------------- #
+
+shell_escape(){
+    echo "$1" | sed 's|'"'"'|'"'"'"'"'"'"'"'"'|'
+}
+
+shell_quote(){
+    echo "'$(shell_escape "$1")'"
+}
+
+path_split_and_quote(){
+    echo "$(shell_quote "$1")" | sed "s|:|' '|g"
+}
+
+path_search(){
+    local NAME="$1"; shift
+    while test "$#" -gt 0; do
+	if test -f "$1"/"$NAME"; then
+	    echo "$1/$NAME"
+	    return 0
+	fi
+	shift
+    done
+    panic "not found: $NAME."
+}
+
+path_search_executable(){
+    local NAME="$1"; shift
+    while test "$#" -gt 0; do
+	if test -x "$1"/"$NAME"; then
+	    echo "$1/$NAME"
+	    return 0
+	fi
+	shift
+    done
+    panic "not found: $NAME."
+}
+
+
+# ** Core functions  ------------------------------------------------------------------ #
+
+mklib_tool_where(){
+    if test "$#" -ne 1; then panic "'tool-where' takes exactly 1 argument, given: $@."; fi
+    eval path_search_executable "$(shell_quote "$1")" "$(path_split_and_quote "$MKLIB_TOOLPATH")"
+}
+
+mklib_tool(){
+    if test "$#" -lt 1; then panic "'tool' requires at least 1 argument."; fi
+    TOOLNAME="$1"; shift
+    TOOLPATH="$(mklib_tool_where "$TOOLNAME")"
+    exec "$TOOLPATH" "$@"
+}
+
+mklib_where(){
+    if test "$#" -ne 1; then panic "'where' takes exactly 1 argument, given: $@."; fi
+    eval path_search "$(shell_quote "$1")" "$(path_split_and_quote "$MKLIB_PATH")"
+}
+
+# ** Interpret command line  ---------------------------------------------------------- #
+
+set -e 
+set -u
+set -o pipefail
+
+MKLIB_TOOLPATH="${MKLIB_PATH:-$MKLIB_TOOLPATH}"
+
+if test "$#" -lt 1; then panic "no command given"; fi
+
+case "$1" in
+     -where)       shift; mklib_where      "$@";;        
+      -tool)       shift; mklib_tool       "$@";;
+      -tool-where) shift; mklib_tool_where "$@";;
+         -*)  panic "unknown command: $@".;;
+          *)  mklib_where "$@";;
+esac
+
+# ** ---------------------------------------------------------------------------------- #
+# *** TODOs / Open Points
+#     * TODO: Implment updating features: modes: -update, -local, -external.
+# *** Emacs setup
+# Local Variables:
+# orgstruct-heading-prefix-regexp: "^[ 	]*\\(\\(#[# 	]*\\([ 	][ 	]*[=][>]\\)*[ 	][ 	]*\\)\\|\\([A-Za-z_][A-Za-z0-9_ ]*()\\([{]\\|\\)[ 	]*#+[ 	]*\\)\\)"
+# eval: (orgstruct-mode 1)
+# End:
+
+
+

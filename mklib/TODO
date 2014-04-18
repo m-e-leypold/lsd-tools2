@@ -1,0 +1,25 @@
+* -*- mode:org; eval:(org-indent-mode 1); -*-
+
+
+* Unsorted [0/6]
+
+- [ ] Migrate some stuff from other sources to this place.
+
+- [ ] 'mklib -update' - run build and cache local copies of mklib modules in project
+  directories.
+
+- [ ] ad-hoc libraries
+
+- [ ] mklib-base-settings.mklib
+
+- [ ] mklib-tools.mklib
+- [ ] mklib-std-paths.mklib
+
+- [ ] mk2
+
+
+* ---
+# Local Variables:
+# eval: (visual-line-mode)
+# eval: (org-indent-mode 1)
+# End:

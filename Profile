@@ -34,8 +34,9 @@ MYPATH="$(dirname $MYNAME)"
 begin_profile "$@"
 {
     :
-    add_to_path PATH          "$MYPATH/misc"  "$MYPATH/scripts" "$MYPATH/bin" "$MYPATH/orx"
+    add_to_path PATH          "$MYPATH/mklib" "$MYPATH/misc"  "$MYPATH/scripts" "$MYPATH/bin" "$MYPATH/orx" 
     add_to_path MKLIB_PATH    "$MYPATH/mklib"
     add_to_path PYTHONPATH    "$MYPATH/pylib"
 }
 end_profile
+
