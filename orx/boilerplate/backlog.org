@@ -1,0 +1,29 @@
+* -*- mode:org; eval:(org-indent-mode 1); eval: (visual-line-mode); -*-
+
+#+SETUPFILE:   ~/.orx/orx/keywords.org
+#+STARTUP:     oddeven
+
+#+TITLE:       [PROCESS-NAME] Backlog
+#+ABOUT:       Backlog for [PROCESS-NAME] topics
+
+#+CATEGORY:    BL/[PROCESS-SHORTCUT]
+#+FILETAGS:    [HIVE] [PROCESS-SHORTCUT] BACKLOG
+
+#+ROLE:        backlog
+#+PROCESS:     [PROCESS-SHORTCUT]
+
+#+ATTACH_DIR:         ~/.files/hives/[HIVE]/projects/[PROCESS-SHORTCUT]/
+#+ATTACH_DIR_INHERIT: t
+#+ARCHIVE:            ARCHIVE.org::* INCOMING NOTES
+
+:BOILERPLATE:
+
+This is the preliminary boilerplate for an orx backlog store. See BOILERPLATE notes in
+[[~/.orx/orx/boilerplate/workspace.org][boilerplate/workspace.org]] for some hints on the relationship between projects, workspaces
+and process (there should also be a SOP note around somewhere, but probably unpublished).
+
+See [[~/.orx/orx/boilerplate/tickets.org][boilerplate/tickets.org]] for the variables to be replaced. 
+
+:END:
+
+

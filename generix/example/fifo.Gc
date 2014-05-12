@@ -1,0 +1,70 @@
+<#-  /* -*- mode:c -*-  */
+ #
+ #   libCX -- (abstract) data type source library for C.
+ #
+ #   Copyright (C) 2006,2007  M E Leypold, Software-Dienstleistungen und Beratung
+ #
+ #   This program is free software; you can redistribute it and/or
+ #   modify it under the terms of the GNU General Public License
+ #   version 2 as published by the Free Software Foundation (no later
+ #   version).
+ #
+ #   This program is distributed in the hope that it will be useful,
+ #   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ #   General Public License for more details.
+ #
+ #   You should have received a copy of the GNU General Public License
+ #   along with this program; if not, write to the Free Software
+ #   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ #   02110-1301 USA.
+     
+ #   fifo.Gh - Generic fifo implementation.
+#>
+
+<#- GENERIC body        
+    # no extra variables
+#>
+
+/*
+ *   libCX -- data type source library for C
+ *
+ *   Copyright (C) 2006,2007  M E Leypold, Software-Dienstleistungen und Beratung
+ *
+ *   This program is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU General Public License
+ *   version 2 as published by the Free Software Foundation (no later
+ *   version).
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ *   02110-1301 USA.
+ *
+ *   <<_GENERIX_TARGET_>> -- instance of fifo.Gc (generic fifo)
+ */
+
+#include "<<_INSTANCE_H_>>" 
+#include "libpanic.h"
+
+#include <string.h>
+
+<#- NOTE: Since the intance descriptor is static, there is no need to
+    place it into an extra namespace.
+#>
+
+static fifo_DESCRIPTOR DESCRIPTOR = {<<>>MAXINDEX, sizeof(<<eT>>)};
+
+void	<<>>init ( <<T>>* f)  {  fifo_init( &DESCRIPTOR, (fifo*) f ); }
+<<eT>>	<<>>get  ( <<T>>* f ) { <<eT>> e; fifo_get( &DESCRIPTOR, (fifo*) f, (void*) &e ); return e; }
+void	<<>>put  ( <<T>>* f, <<eT>> e ) { fifo_put( &DESCRIPTOR,  (fifo*) f, (void*) &e ); }
+int	<<>>len  ( <<T>>* f ) { return fifo_len( &DESCRIPTOR,  (fifo*) f ); }
+
+
+
+

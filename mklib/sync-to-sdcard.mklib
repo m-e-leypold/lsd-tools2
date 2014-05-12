@@ -1,0 +1,30 @@
+default: deploy
+	$(CHECK-TARGET)
+
+DISK-ID   ?= $(notdir $(CURDIR))
+MNT       ?= /mnt
+TARGET    ?= $(MNT)/$(shell logname || echo $$USER )
+
+VARIABLES += DISK-ID MNT TARGET
+
+DBG-FMT  = "  %-10s: %s\\n"
+DBG-SHOW = @printf $(DBG-FMT) 
+
+debug:: $(VARIABLES:%=SHOW_%)
+
+SHOW_%:
+	$(DBG-SHOW) "$*" "$($*)"	
+
+CHECK-TARGET = test -d $(TARGET) && test $$(cat $(MNT)/DISK.id) = "$(DISK-ID)"
+
+init: 
+	echo -n "$(DISK-ID)" >$(MNT)/DISK.id
+	mkdir -p $(TARGET)
+
+deploy:
+	$(CHECK-TARGET)
+	rsync -rvv --delete -t --size-only --copy-links --exclude='*~' --exclude=Makefile ./ $(TARGET)
+
+stat:
+	@du -ksL .
+

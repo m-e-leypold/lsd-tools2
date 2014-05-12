@@ -31,7 +31,7 @@ MKLINK = set -x; mklink(){ cd "$$(dirname "$$2")" &&  { if test -L "$$2"; then r
 install::
 	$(MKDIR)  ~/.scripts
 	$(MKLINK) $(PWD) ~/.scripts/lsd-tools2
-	$(MKLINK) my-scripts2 ~/.scripts/00-lsd-tools2
+	$(MKLINK) lsd-tools2 ~/.scripts/00-lsd-tools2
 
 install::
 	for SUBDIR in $(SUBDIRS); do ( cd "$$SUBDIR" && make install ); done

@@ -1,0 +1,172 @@
+# -*- mode: makefile-gmake -*-
+#
+# Generic Makefile for small C++ Projects
+#
+
+# automatically autodetect compiler suite
+# TODO: selftest symbol must fit into module namespace: ATM <<module>>_selftest...
+# TODO: Suppress 'run ditaa' query.
+# TODO: Full and useful Babel support :-(
+# TODO: SKIP-TESTS, DONT-TEST, TEST-ONLY
+# TODO: Make testing procedures incremental
+# TODO: USING (pkg-config)
+# TODO: .gitignore-extra
+# TODO: Some git-detection and support (source label?)
+# TODO: Tar-Procedures, .distignore und .distignore-extra
+# TODO: Default guess product name (low prio)
+# TODO: Install procedures (low prio)
+# TODO: Move notebook scripts to orx
+
+default: all checks modules
+
+SELFTESTS = true
+
+COMPILER ?= $(notdir $(shell which clang || which gcc))
+
+CXX-clang = clang++
+CC-clang  = clang
+
+CXX-gcc   = g++ 
+CC-gcc    = gcc
+
+CXX       = $(CXX-$(COMPILER))
+CC        = $(CC-$(COMPILER))
+CPPFLAGS  = $(patsubst true, -DCOMPILE_SELFTESTS, $(filter true, $(SELFTESTS))) $(EXTRA_CPPFLAGS)
+CXXFLAGS  = -Wall -g -O0 $(EXTRA_CXXFLAGS)
+
+# TODO:  Flags need to be better organized: PROFILE_CPPFLAGS, EXTRA_CPPFLAGS, CXX_FLAGS_-O, etc
+
+# This is for debuggin only ATM: Need to develop useful profiles "BUILD-PROFILE = ..."
+
+CLEANGOALS = $(filter clean%, $(MAKECMDGOALS))
+SOURCES    = $(wildcard *.cc *.hh *.org)
+
+NOTEBOOKS         = $(patsubst %.org, %, $(filter %.org, $(SOURCES)))
+NOTEBOOK-PRODUCTS =
+
+.deps/notebook/%.mk: %.org
+	mkdir -p $(@D)
+	rm -f $@~tmp
+	FILES="$$(grep '^[ ]*\#+begin_src[ ]\+.*[ ]\+[:]tangle[ ]\+' "$<"       	\
+                 | sed 's|.*[ ]\+[:]tangle[ ]\+||;s|[ ]\+.*||')";                    	\
+        for FILE in $$FILES; do 							\
+            echo ".deps/notebook/$$FILE"': .deps/notebook/$*.untangled; touch $$@'; 	\
+            echo "NOTEBOOK-PRODUCTS += $$FILE";                                         \
+        done >>$@~tmp
+	mv $@~tmp $@
+
+include $(NOTEBOOKS:%=.deps/notebook/%.mk)
+
+.deps/notebook/%.untangled: .deps/notebook/%.preprocessed-src.org # %.org
+	mkdir -p $(@D)
+	org-babel-tangle $< 1>$@~tmp 2>&1 ; if test $$? -gt 0; then cat $@~tmp; exit 1; fi
+	@mv $@~tmp $@
+
+.deps/notebook/%.preprocessed-src.org: %.org
+	mkdir -p $(@D)
+	org-annotate-lines "$<" >"$@"~tmp
+	mv "$@"~tmp "$@"
+
+
+$(NOTEBOOK-PRODUCTS): %: .deps/notebook/%
+	mkdir -p $(@D)
+	cp "$<" "$@"
+
+untangle: $(NOTEBOOK-PRODUCTS)
+
+test:: $(NOTEBOOKS:%=.deps/notebook/%.preprocessed-src.org)
+
+%.pdf: %.org
+	org-export-as-pdf "$<"
+
+
+
+docs  :: $(NOTEBOOKS:%=%.pdf)
+clean ::
+	rm -f $(NOTEBOOK-PRODUCTS) $(NOTEBOOKS:%=%.tex) $(NOTEBOOKS:%=%.pdf)
+	rm -f .deps/notebook/*.untangled
+
+ORIGINAL-SOURCES:= $(SOURCES)
+SOURCES         += $(filter %.cc %.hh, $(filter-out $(ORIGINAL-SOURCES), $(NOTEBOOK-PRODUCTS)))
+OBJECTS          = $(patsubst %.cc, %,  $(filter %.cc,  $(SOURCES)))
+HEADERS          = $(patsubst %.hh, %,  $(filter %.hh,  $(SOURCES)))
+MODULES          = $(filter     $(HEADERS), $(OBJECTS))
+PROGRAMS         = $(filter-out $(HEADERS), $(OBJECTS))
+
+ifeq ($(TEST-ONLY),)
+TEST-PROGRAMS = $(patsubst %, .tests/%_selftest, $(filter-out $(DONT-TEST) $(SKIP-TESTS), $(MODULES)))
+else
+TEST-PROGRAMS = $(patsubst %, .tests/%_selftest, $(TEST-ONLY))
+endif
+
+# XXX TEST-ONLY could/might be a pattern?
+
+.tmp/module_selftest.cc: Makefile
+	mkdir -p $(@D)
+	echo 'namespace testing { void module_selftest(); }; int main(){ testing::module_selftest(); }' >$@
+
+.deps/%.dd: %.cc
+	mkdir -p $(@D)
+	$(CXX) $(CPPFLAGS) -MM -MG $< >$@~tmp1
+	cp $@~tmp1 $@~tmp2
+	sed <$@~tmp1 's|^\([a-zA-Z_0-9]*[.]\)\(oo*\):|$(@):|' >>$@~tmp2 
+	mv $@~tmp2 $@
+
+all    :: $(PROGRAMS:%=%)
+checks :: $(TEST-PROGRAMS) $(PROGRAMS:%=%) 
+	@OK=true; PATH=.:$(PATH); for i in $^; do echo ---; echo $$i: ; $$i; if test $$? -gt 0; then OK=false ; fi; done; $$OK
+
+modules::
+
+ifneq ($(MODULES),)              # This dance is to handle empty modules
+MODULES.A    = .modules.a
+$(MODULES.A) : .modules.a($(MODULES:%=%.o))
+modules::    $(MODULES.A)
+endif
+
+$(PROGRAMS): $(MODULES.A)
+
+$(TEST-PROGRAMS): .tests/%_selftest: .tmp/module_selftest.cc %.o $(MODULES.A)
+	mkdir -p $(@D)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $^ -o $@ $(LOADLIBES) $(LDLIBS)
+
+clean::
+	rm -f $(TEST-PROGRAMS) $(PROGRAMS)
+
+%: %.o # deactivate built-in rule, 
+       # see http://www.glitzersachen.de/blog/
+       #            2013/09/04/better-deactivate-the-linking-rule-:-o-in-makefiles/
+
+debug:
+	@echo 'NOTEBOOKS         = $(NOTEBOOKS)'
+	@echo 'NOTEBOOK-PRODUCTS = $(NOTEBOOK-PRODUCTS)'
+	@echo 'SOURCES           = $(SOURCES)'
+	@echo 'OBJECTS           = $(OBJECTS)'
+	@echo 'MODULES           = $(MODULES)'
+	@echo 'MODULES.A         = $(MODULES.A)'
+	@echo 'HEADERS           = $(HEADERS)'
+	@echo 'PROGRAMS          = $(PROGRAMS)'
+	@echo 'TEST-PROGRAMS     = $(TEST-PROGRAMS)'
+	@echo ---
+	@echo 'COMPILER          = $(COMPILER)'
+	@echo 'CXX               = $(CXX)'
+	@echo 'CC                = $(CC)'
+
+clean::
+	rm -f *.o .modules.a *~
+
+cleaner:: clean
+	rm -f .gitignore
+	rm -rf .deps
+
+GIT-IGNORE = /.deps /.modules.a "*~" "*.o" /.tmp /.tests
+
+.gitignore:
+	for W in $(GIT-IGNORE) $(PROGRAMS); do echo "$$W"; done >$@~tmp
+	mv $@~tmp $@
+
+all    :: .gitignore
+
+ifeq ($(CLEANGOALS),)
+include $(OBJECTS:%=.deps/%.dd)
+endif

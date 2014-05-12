@@ -1,0 +1,39 @@
+* -*- mode:org; eval:(org-indent-mode 1); eval: (visual-line-mode); -*-
+
+#+SETUPFILE:   ~/.orx/orx/keywords.org
+#+STARTUP:     oddeven
+
+#+TITLE:       [PROCESS-NAME] Notes
+#+ABOUT:       Notes for [PROCESS-NAME] topics
+
+#+CATEGORY:    NT/[PROCESS-SHORTCUT]
+#+FILETAGS:    [HIVE] [PROCESS-SHORTCUT] NOTES
+
+#+ROLE:        notes
+#+PROCESS:     [PROCESS-SHORTCUT]
+
+#+ATTACH_DIR:         ~/.files/hives/[HIVE]/projects/[PROCESS-SHORTCUT]/
+#+ATTACH_DIR_INHERIT: t
+#+ARCHIVE:            ARCHIVE.org::* INCOMING NOTES
+
+:BOILERPLATE:
+
+This is the preliminary boilerplate for an orx notes store. See BOILERPLATE notes in
+[[~/.orx/orx/boilerplate/workspace.org][boilerplate/workspace.org]] for some hints on the relationship between projects, workspaces
+and process (there should also be a SOP note around somewhere, but probably unpublished).
+
+See [[~/.orx/orx/boilerplate/tickets.org][boilerplate/tickets.org]] for the variables to be replaced. 
+
+As of [2014-05-11 Sun] the difference between NOTES.org and ARCHIVE.org is not quite
+clear. It is assumed that stuff in ARCHIVE org will not show up in agendas, while stuff in
+NOTES.org will.
+
+NOTES.org will contain DIARY entries as well as NOTEs. As of [2014-05-11 Sun] I assume
+there will not be a [PROCESS-NAME]/DIARY.org.
+
+:END:
+
+
+
+
+

@@ -1,0 +1,55 @@
+* -*- mode:org; eval:(org-indent-mode 1); eval: (visual-line-mode); -*-
+
+#+SETUPFILE:   ~/.orx/orx/keywords.org
+#+STARTUP:     oddeven
+
+#+TITLE:       [PROCESS-NAME] Tickets
+#+ABOUT:       Tickets for [PROCESS-NAME] topics
+
+#+CATEGORY:    TK/[PROCESS-SHORTCUT]
+#+FILETAGS:    [HIVE] [PROCESS-SHORTCUT] _TK
+
+#+ROLE:        tickets
+#+PROCESS:     [PROCESS-SHORTCUT]
+
+#+ATTACH_DIR:         ~/.files/hives/[HIVE]/projects/[PROCESS-SHORTCUT]/
+#+ATTACH_DIR_INHERIT: t
+#+ARCHIVE:            ARCHIVE.org::* INCOMING
+
+:BOILERPLATE:
+
+This is the preliminary boilerplate for an orx ticket or bug report store. See BOILERPLATE
+notes in [[~/.orx/orx/boilerplate/workspace.org][boilerplate/workspace.org]] for some hints on the relationship between projects,
+workspaces and process (there should also be a SOP note around somewhere, but probably
+unpublished).
+
+- HIVE: As in [[~/.orx/orx/boilerplate/workspace.org][boilerplate/workspace.org]], e.g. "personal", "freelancing", "companyX".
+- PROCESS-SHORTCUT: Alphanumeric ID for process/portfolio, like "labnet", "huw", "wbi".
+- PROCESS-NAME: Often identical with process shortcut, e.g. "Labnet".
+
+You might want to give the process an even shorter ID, like 
+
+: #+CATEGORY: TK/LN
+
+You might want to change TK/ to BG/ for bug report stores and the title accordingly to
+
+: #+TITLE:    [PROCESS-NAME] Bug Reports
+
+As of [2014-05-01 Thu] the ATTACH-DIR conventions for tickets (and bug reports) are not
+clear. but it seems likely, that it will be something like
+
+: ~/.files/hives/[HIVE]/tickets/[TICKET-ID]/
+
+or
+
+: ~/.files/hives/[HIVE]/projects/[PROCESS-SHORTCUT]-[TICKET-ID]
+
+dependent on the "naming" conventions for tickets. This will have to be clarified before
+to many tickets with attachements in the "wrong" directory will have been created.
+
+:END:
+
+
+
+
+

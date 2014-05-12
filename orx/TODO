@@ -1,11 +1,13 @@
 * -*- mode:org; eval:(org-indent-mode 1); -*-
 
 * Unsorted
-
 - Eliminate dependencies on ~/.eorg.
-
+- org-export-as-latex
 * ---
 # Local Variables:
 # eval: (visual-line-mode)
 # eval: (org-indent-mode 1)
 # End:
+
+
+

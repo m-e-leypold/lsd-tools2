@@ -1,0 +1,65 @@
+
+This is a consolidated list of useful keyword following
+post-[2014-02-22 Sat] conventions (see relevante SOPCandidate
+note). These are NOT complete as of [2014-02-27 Thu].
+
+Explanations will have to follow at some other time.
+
+#+TODO: TODO NOW | DONE
+#+TODO: | CANCELLED 
+#+TODO: | REJECTED
+#+TODO: | POSTPONED
+
+Difference REJECTED/CANCELLED?
+
+#+TODO: OPEN |
+
+'OPEN' is manual marker to propagate incompleteness upwards in cookies
+for entries otherwise without keywords. I basically use this to mark
+sub-entries to be revisited before archiving in otherwise closed
+tasks/notes, e.g. if I can't move the open point out of a planning
+document.
+
+#+TODO: TASK ACTIVE-TASK DONE-TASK
+#+TODO: ACTIVE-BLURB(b) BLURB 
+#+TODO: ACTIVE-NOTES(N) NOTES
+#+TODO: ACTIVE-NOTE(n) | NOTE UKAS ASIDE
+
+#+TODO: TICKET(t) ACTIVE-TICKET CLOSED-TICKET
+#+TODO: | REJECTED-TICKET
+#+TODO: BUG(d) RESOLVED-BUG
+#+TODO: | REJECTED-BUG
+
+#+TODO: DEPENDS | DONE-DEPENDS
+#+TODO: | SEE-ALSO BLOCKS
+
+#+TODO: PROJECT CLOSED-PROJECT
+#+TODO: PROCESS CLOSED-PROCESS
+#+TODO: CASE    CLOSED-CASE
+
+Note: Ob etwas als PROCESS oder als CASE geführt wird, ist ergibt sich
+größtenteils aus der Situation. Die Idee ist, dass CASEs wie "kleine
+Projekte" explizit abgeschlossen werden (Archivierung) und Footprint
+im Datei/Attachment-Archiv haben. CASEs können, müssen aber nicht in
+PROJEKTEN enthalten sein. Projekte können nicht in anderen Projekten
+enthalten sein.
+
+Als solches stehen CASEs zwischen PROJECTs und TASKs.
+
+#+TODO: | MODEL
+#+TODO: | CLASS
+
+#+TODO: | ABOUT
+#+TODO: | BM(m)
+
+#+TODO: INCOMING  |
+
+#+TODO: LOGGING UNTIDY-WORKLOG | WORKLOG
+#+TODO: BACKLOG   |
+#+TODO: TOMORROW  |
+
+#+TODO: PLAN | PLANNED
+#+TODO: | LOG 
+#+TODO: CLOCKING(c) | CLOCKED
+
+#+DRAWERS: XXX NOTE ASIDE META BOILERPLATE

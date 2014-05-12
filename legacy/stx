@@ -1,0 +1,388 @@
+#!/bin/sh
+#
+# lsdscripts - Various build support scripts
+#
+# Copyright (C) 2006-2010 M E Leypold, Software-Dienstleistungen und
+# Beratung
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# version 3.0 as published by the Free Software Foundation (no later
+# version).
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+# 02110-1301 USA.
+
+# STX - the Simple Template eXpander II (prototype)
+
+MYNAME=stx
+MYVERSION=0.1
+
+# ---------------------------------------
+
+errors=false;
+
+error(){
+  echo "$MYNAME: error: $*." 1>&2
+  errors=true;
+}
+
+panic(){
+  echo "$MYNAME: fatal error: $1 -- aborting." 1>&2
+  exit ${2:-1}
+}
+
+warning(){
+  echo "$MYNAME: warning: $*." 1>&2
+}
+
+finish(){
+  if $errors; then panic "errors occured during processing"; fi
+}
+
+# ---------------------------------------
+
+add_definition(){
+  definition="$(echo -n "$1" | sed -n 'H;${g;s|^\n*||;s|"|\\"|g;s|\n|\\n|g;s|^|\n  DEF["|;s|=|"]="|;s|$|";|;p}')"
+  definitions="$definitions$definition"
+}
+
+
+ARGS=$(\
+  getopt -n "MYNAME"                                                        \
+         -o GrhvdD:I:o:                                                       \
+         --long help,version,define:,output-file:,recursive,debug,generix   \
+         -- "$@"                                                             \
+)
+
+if test "$?" -gt 1 ; then panic "argument syntax error, call with --help to see usage"; fi
+
+eval set -- "$ARGS"
+
+recursive=0;
+debug=false;
+
+RX_SYMSTART="<#";RX_SYMSTOP="#>"
+LINE_DIRECTIVES=""
+
+while true ; do
+  case "$1" in
+             --help|-h) usage;   exit 0;;
+          --version|-v) echo $MYVERSION; exit 0;;
+           -D|--define) add_definition "$2" ; shift 2;;
+      -o|--output-file) REDIRECTION="> '$2'" ; shift 2;;
+        -r|--recursive) recursive=1; shift 1;;
+            -d|--debug) debug=true; shift 1;;
+ -G|--generix|-generix) RX_SYMSTART="<<";RX_SYMSTOP=">>"; LINE_DIRECTIVES="C"; shift;;
+
+                     -I)
+                        STX_INCLUDEPATH="${STX_INCLUDEPATH}"':'"$2"; 
+			export STX_INCLUDEPATH
+			shift 2;;
+
+                    --) shift ; break ;;
+    *) panic "internal error!";;
+  esac
+done
+
+while test "$#" -gt 0; do 
+   INPUT_FILES="$INPUT_FILES '$1'"
+   shift
+done
+
+
+# ----------------------------------------
+
+
+program='
+
+BEGIN{ # defined substitutions ----------------------
+'"$definitions"'
+}
+# ---------------------------------------------------
+
+BEGIN{
+
+  recursive='"$recursive"';
+
+  ERROR_CHANNEL = "cat >&2"
+  INPUT_CHANNEL = "";
+  
+  input_status  = 1;  
+
+  T=0;
+
+  TOKEN_LINE    = T++;
+  TOKEN_EOF     = T++;
+  TOKEN_IFDEF   = T++;
+  TOKEN_IF      = T++;
+  TOKEN_ELSE    = T++;
+  TOKEN_ENDIF   = T++;
+  TOKEN_INCLUDE = T++;
+
+  TOKEN_COMMENTARY = T++;  
+
+  LINE_DIRECTIVES = "'"$LINE_DIRECTIVES"'";
+
+  process(); exit 0;
+}
+
+function panic(msg){
+  print "stx: " msg "." | ERROR_CHANNEL
+  exit 1
+}
+
+function trace(msg){
+  print "stx: " msg "." | ERROR_CHANNEL
+}
+
+
+function expand_var(VAR,RES){
+
+   if (VAR in LOCK){
+     panic("expansion loop on variable: " VAR)
+   }
+
+   LOCK[VAR];
+
+   if (!(VAR in DEF)){
+     panic("undefined variable in template: " VAR)
+   }
+
+
+   if (recursive) RES=line_expand(DEF[VAR])
+   else           RES=DEF[VAR];
+
+   delete LOCK;
+   return RES;
+}
+
+function line_expand(BUF,RES){
+
+  while (BUF~/'"$RX_SYMSTART"'/) {
+    match(BUF,/'"$RX_SYMSTART"'([a-zA-Z0-9_\-]*)'"$RX_SYMSTOP"'/,MATCH);
+
+    if (!RSTART) panic("illegal variable name here: " BUF);
+
+    VAR    = MATCH[1];
+    BEFORE = substr(BUF,1,RSTART-1);
+    BUF    = substr(BUF,RSTART+RLENGTH);
+    EXP    = expand_var(VAR);
+    RES    = RES BEFORE EXP
+  }
+
+  return RES BUF;
+}
+
+
+function get_line(){
+  if (INPUT_CHANNEL){
+    input_status = getline < INPUT_CHANNEL;
+  } else {
+    input_status = getline;
+  }
+}
+
+function have_eof(){
+  return (input_status != 1)
+}
+
+function have_input_error(){
+  return (input_status < 0)
+}
+
+function limit_args(min,max){
+
+  if ( ARG_COUNT<min || (max>0 && ARG_COUNT>max) ) panic("improper argument count: "$0);
+}
+
+
+# XXX def sep. split_args an various process-args stuff (like for include): get_kw_args()
+
+function get_keyword(){
+
+   match($0,/<#  *([a-zA-Z0-9-]*) (.*)#>/,MATCH);
+   if (!RSTART)            panic("expected keyword \"" keyword "\", found no keyword here: "$0);
+   KEYWORD = MATCH[1];
+   ARGSTR  = MATCH[2];
+
+   if (ARGSTR~/#>/) panic("syntax error: " $0);
+
+   gsub(/^[ \t]*/,"",ARGSTR);
+   gsub(/[ \t]*$/,"",ARGSTR);
+
+   ARG_COUNT = split(ARGSTR, ARGS);
+
+   if (KEYWORD=="ifdef") { TOK=TOKEN_IFDEF;   limit_args(1,-1); return; }
+   if (KEYWORD=="if")    { TOK=TOKEN_IF;      limit_args(1,1);  return; }
+   if (KEYWORD=="else")  { TOK=TOKEN_ELSE;    limit_args(0,0);  return; }
+   if (KEYWORD=="endif") { TOK=TOKEN_ENDIF;   limit_args(0,0);  return; }
+
+   if (KEYWORD=="include") { TOK=TOKEN_INCLUDE; 
+	                     limit_args(1,1); 
+                             return; 
+                           }
+
+   panic("directive not implemented: \"" KEYWORD "\"");
+}
+
+
+function get_tok(){
+
+  get_line();
+  if (have_eof())            { TOK=TOKEN_EOF; return; }
+  if ($0~/^<# /)             { get_keyword(); return; }
+
+  if ($0~/^[ \t]*<#- /)      { TOK=TOKEN_COMMENTARY; return; }
+
+  { TOK=TOKEN_LINE;  return; }
+}
+
+function match_tok(t){
+   if (TOK==t) { get_tok() ; return; } else panic("expected something else here: "t" instead of "TOK": " $0);
+
+   # XXX can be improved (better user text)
+}
+
+function process_comment(skipmode){
+  
+  end_of_comment=0;
+  while (!end_of_comment){
+    if (TOK==TOKEN_EOF) panic("EOF in comment");
+    end_of_comment = $0 ~ /#>[ \t]*$/;
+    get_tok();
+  }
+}
+
+
+function process_include(skip_mode, SAVED_CHANNEL,err){
+
+  if (skip_mode) { get_tok(); return; }
+
+  SAVED_CHANNEL=INPUT_CHANNEL;
+
+  err = ("stx-find-include "ARGS[1]) | getline INPUT_CHANNEL
+  if (err<1) panic("failed to find include file: "ARGS[1])
+
+  trace("including from: " INPUT_CHANNEL )
+
+  get_tok();
+  
+
+  process_items(skip_mode);
+  if (TOK!=TOKEN_EOF)     panic("end of included file ("INPUT_CHANNEL") expected: "$0);
+  if (have_input_error()) panic("input error from " INPUT_CHANNEL);
+
+  INPUT_CHANNEL=SAVED_CHANNEL; get_tok();
+}
+
+function emit_line(l){
+    LINES_EMITTED++
+    if (LINE_DIRECTIVES == "C") {
+       if ( LINES_EMITTED==1 || ((NR + LINES_OFFSET) != LINES_EMITTED)){
+           print "#line "NR" \""FILENAME"\""
+           LINES_OFFSET = LINES_EMITTED - NR;
+       }
+    }
+    print l;
+}
+
+
+function process_item(skip_mode, BUF){
+
+   if (TOK==TOKEN_LINE){
+      if (!skip_mode) {
+         match($0, /[ \t]*<#--/);
+	 if (RSTART) { BUF=substr($0,1,RSTART-1) } else { BUF=$0 };
+         if (BUF~/'"$RX_SYMSTART"'/) emit_line(line_expand(BUF)); else emit_line(BUF);
+      }
+      get_tok();
+      return;
+   }
+
+   if (TOK==TOKEN_IFDEF)         { process_ifdef(skip_mode);   return; }
+   if (TOK==TOKEN_IF)            { process_if(skip_mode);      return; }
+   if (TOK==TOKEN_INLCUDE)       { process_include(skip_mode); return; }
+
+   if (TOK==TOKEN_COMMENTARY)    { process_comment(skip_mode); return; }
+   if (TOK==TOKEN_INCLUDE)       { process_include(skip_mode); return; }
+
+   panic("not implemented: " $0);
+}
+
+
+function get_condition_ifdef(ARGS){
+
+   for (i in ARGS) { if (!(ARGS[i] in DEF)) return 0; };
+   return 1;
+}
+
+function get_condition_if(skip_mode){
+   if (skip_mode) return 1;
+   if (!(ARGS[1] in DEF)) panic("conditional \"" ARGS[1]  "\" not defined: " $0);
+   return ((ARGS[1] in DEF) && (DEF[ARGS[1]]) + 0);
+}
+
+function process_ifdef(skip_mode,condition){
+   condition = get_condition_ifdef(ARGS);
+   match_tok( TOKEN_IFDEF );
+   process_items( skip_mode || (!condition) );
+   if (TOK==TOKEN_ELSE){ 
+      match_tok( TOKEN_ELSE );
+      process_items( skip_mode || condition );
+   }
+   match_tok( TOKEN_ENDIF );
+}
+
+function process_if(skip_mode,condition){
+   condition = get_condition_if(skip_mode);
+   match_tok( TOKEN_IF );
+   process_items( skip_mode || (!condition) );
+   if (TOK==TOKEN_ELSE){ 
+      match_tok( TOKEN_ELSE );
+      process_items( skip_mode || condition );
+   }
+   match_tok( TOKEN_ENDIF );
+}
+
+
+function process_items(skip_mode){
+   while (1) {     
+     if ( TOK==TOKEN_LINE            \
+	  || TOK==TOKEN_IFDEF        \
+          || TOK==TOKEN_IF           \
+          || TOK==TOKEN_INCLUDE      \
+          || TOK==TOKEN_COMMENTARY ) 
+	{ process_item(skip_mode); continue; }
+     break;
+   }
+}
+
+
+function process(){
+   get_tok();     
+   process_items(0);
+   if (TOK!=TOKEN_EOF)     panic("end of file expected: "$0);
+   if (have_input_error()) panic("input error")
+}
+
+'
+
+if $debug; then
+{ echo -----------------
+  echo stx: debug dump: awk program
+  echo ----
+  echo "$program"
+  echo -----------------
+} >&2
+fi
+
+eval gawk -- '"$program"' $INPUT_FILES $REDIRECTION
+

@@ -1,0 +1,563 @@
+#                                        -*- mode: shell-script -*-
+#
+# lsdscripts - Various build support scripts
+#
+# Copyright (C) 2006-2010 M E Leypold, Software-Dienstleistungen und
+# Beratung
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# version 3.0 as published by the Free Software Foundation (no later
+# version).
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+# 02110-1301 USA.
+#
+
+#
+# lsdtools.shlib - Common functions for all lsdtools
+#
+
+WARNINGS=false
+ERRORS=false
+
+panic(){
+       echo >&2 "$APPNAME: $*"
+       exit 255;
+       
+       # NOTE: We use 255 as special value to indicate a panic for the
+       # following reasons:
+       #
+       #   - No collision with error exit values from tools (which are
+       #     being propagated to the invoking process if we use 'set
+       #     -e')
+       #
+       #   - Signal show up as 128 + signal number. Since the number
+       #     of signals is usually less than 127, there will be no
+       #     collision with exit values that correspond to signals.
+       #
+
+       # If panic events have a unique (or reasonably unique) exit
+       # value, we can propagate panic events from sub processes w/o
+       # printing additional error messages which would be annoying
+       # and inappropriate in some situations. This is what
+       # propagate_or_panic() is for: Convert a already logged panic
+       # in a subprocess into a silent exit or panic if the last exit
+       # code is not a panic.
+}
+
+propagate_or_panic(){
+    if test "$?" -eq 255; then
+	infomsg "$*"
+	exit 255
+    else
+	panic "$*"
+    fi
+
+    # Note: Typical usage:
+    #  
+    #  ( do_something; do_another_thing; ) \
+    #    || propagate_or_panic "Could not frobnicate initial records."
+}
+
+infomsg_verbose(){
+       echo >&2 "$APPNAME: $*"
+       WARNINGS=true
+}
+
+warning(){
+       echo >&2 "$APPNAME: $*"
+       WARNINGS=true
+}
+
+error(){
+       echo >&2 "$APPNAME: $*"
+       ERRORS=true
+}
+
+
+app_exit(){
+    if "$ERRORS"; then
+	panic "errors occurred during processing -- aborting."
+    fi
+    if test "$#" -gt 0; then 
+	echo "$1" >&2;
+    fi
+    exit 0;
+}
+
+set_silent(){
+    infomsg(){ :; }
+}
+
+unset_silent(){
+    infomsg(){ infomsg_verbose "$@"; }
+}
+
+if test -n "$LSDTOOLS_SILENT" && "$LSDTOOLS_SILENT"; then
+   set_silent;
+else
+   unset_silent;
+fi
+
+
+usage(){       
+       echo "$USAGE" | smartfmt
+}
+
+help_page(){           
+       eval '
+         if test -n "$HELP'_"$1"'"; then
+            echo "$HELP'_"$1"'" | smartfmt | smartpager
+         else
+            panic "help does not exist: $1."
+         fi
+       '
+}
+
+example_page(){           
+       eval '
+         if test -n "$EXAMPLE'_"$1"'"; then
+            echo "$EXAMPLE'_"$1"'" | smartfmt verbatim | smartpager
+         else
+            panic "example does not exist: $1."
+         fi
+       '
+}
+
+usage_error(){
+    echo  >&2 "$APPNAME: $*"
+    usage >&2
+    exit 1;
+}
+
+debug_log(){
+    echo >&2 "DBG: $APPNAME: $*"
+}
+
+debug_dump(){
+  
+    DEBUG_FILENAME="$1"
+    shift;
+    if test "$#" -gt 0; then
+	DEBUG_COMMENT="$*"
+    else
+	DEBUG_COMMENT="$DEBUG_FILENAME"
+    fi
+
+    echo >&2 "DBG: $APPNAME: $DEBUG_COMMENT => ["
+    cat "$DEBUG_FILENAME" | sed 's|^|DBG: '"$APPNAME"': \| |'
+    echo >&2 "DBG: $APPNAME: ] ($DEBUG_COMMENT)"
+    true
+}
+
+debug_dump_hex(){
+    DEBUG_FILENAME="$1"; shift
+    hexdump -C "$DEBUG_FILENAME" | debug_dump - "$@"
+}
+
+set_DBG(){
+   DBG=debug_log
+   DBGDUMP=debug_dump
+   DBGDUMP_HEX=debug_dump_hex   
+}
+
+unset_DBG(){
+   DBG=true
+   DBGDUMP=true
+   DBGDUMP_HEX=true 
+}
+
+if test -n "$LSDTOOLS_DBG" && "$LSDTOOLS_DBG"; then
+   set_DBG;
+else
+   unset_DBG;
+fi
+
+process_command='eval shift 1 ; save_args "$@" ; _process_command "$ARGS"'
+_process_command(){
+    CMD="$2"
+    ARGC_MIN="$3"
+    ARGC_MAX="$4"
+    eval set $ARGS
+    check_argc "$ARGC_MIN" "$ARGC_MAX" "$@"
+    eval "$CMD"' $@'
+    app_exit
+}
+
+page_stdout='eval shift 1 ; save_args "$@" ; _command_and_page_stdout "$ARGS"'
+_command_and_page_stdout(){
+    CMD="$2"
+    ARGC_MIN="$3"
+    ARGC_MAX="$4"
+    eval set $ARGS
+    check_argc "$ARGC_MIN" "$ARGC_MAX" "$@"
+    eval "$CMD"' $@' | smartpager
+    app_exit
+}
+
+page_table='eval shift 1 ; save_args "$@" ; _command_and_view_table "$ARGS"'
+_command_and_view_table(){
+    CMD="$2"
+    ARGC_MIN="$3"
+    ARGC_MAX="$4"
+    eval set $ARGS
+    check_argc "$ARGC_MIN" "$ARGC_MAX" "$@"
+    eval "$CMD"' $@' | smarttblview
+    app_exit
+}
+
+# ----------------------------------------------------------
+
+if test -z "$APPNAME"; then APPNAME="$(basename $0)"; fi
+MYPID="$$"
+
+# ----------------------------------------------------------
+
+
+smartpager(){
+    if tty <&1 >/dev/null; then
+       ${SMARTPAGER:-${PAGER:-$(which less || echo more) -S }}
+    else
+       cat
+    fi 
+}
+
+
+smarttblview(){
+    if tty <&1 >/dev/null; then
+	${SMARTTBLFMT:-nosql prtable -l500 -p0} | smartpager
+    else
+        cat
+    fi
+}
+
+
+smartfmt(){
+    eval "$(resize)"
+    SMARTFORMATTER=fmt
+    if test "$#" -gt 0; then
+       SMARTFORMATTER="$1"
+       shift
+    fi
+    case "$SMARTFORMATTER" in
+	verbatim)
+	    sed 's|^  ||'
+	    # NOTE: ATM 2 spaces as indentation are hardcoded.
+	    # This needs to become smarter.
+	    ;;
+	fix)
+	    collapse_ws_lines
+	    ;;
+	fmt|flow|*)
+	    expand \
+	    | fmt -c -t -w "${COLUMNS:-60}" \
+	    | collapse_ws_lines
+	    ;;
+    esac
+
+    # NOTE: ATM moment there is an option to pass a "formatting" style
+    # to smartfmt. Some time in the future there should (a) be a
+    # method to set formatting style with a !#-Token in the text to be
+    # formatted and (b) a formatter which can handle mixed flowing and
+    # pre-formatted layout. Without becoming too complex.
+}
+
+collapse_ws_lines(){
+    awk ' /^[ \t]*$/{ s++; next; } (s){ print ""; s=0; } { print } 
+          END{ if (s) print "" }
+    '
+}
+
+check_argc(){    
+    ARGC_MIN="$1"
+    ARGC_MAX="$2"
+    shift 2;
+    
+    if ! test "$ARGC_MIN" = "..." && test "$#" -lt "$ARGC_MIN"; then
+       panic "not enough arguments (have $# left, need $ARGC_MIN): [...] $*."
+    fi
+
+    if ! test "$ARGC_MAX" = "..." && test "$#" -gt "$ARGC_MAX"; then
+       panic "too many arguments (have $# left, can take $ARGC_MAX): [...] $*."
+    fi
+
+    return 0
+}
+
+
+
+check_argc_(){    # XXX in some later version: fold check_argc_ and check_argc together using "" as first arg
+
+    __LOCATION=""; if test -n "$1"; then __LOCATION="$1:"; fi; shift 1
+
+    ARGC_MIN="$1"
+    ARGC_MAX="$2"
+    shift 2;
+    
+    if ! test "$ARGC_MIN" = "..." && test "$#" -lt "$ARGC_MIN"; then
+       panic "$__LOCATION not enough arguments (have $# left, need $ARGC_MIN): [...] $*."
+    fi
+
+    if ! test "$ARGC_MAX" = "..." && test "$#" -gt "$ARGC_MAX"; then
+       panic "$__LOCATION too many arguments (have $# left, can take $ARGC_MAX): [...] $*."
+    fi
+    unset __LOCATION
+    return 0
+}
+
+
+
+# -------------------------------------------------------------------
+# saving and restoring variables
+# -------------------------------------------------------------------
+
+save_args(){
+    ARGS="$(getopt -o '' -- -- "$@")"
+}
+
+echo_saved_args(){
+    echo -n "$1" | sed 's|^ *-- *||'
+}
+
+echo_args(){
+    getopt -o '' -- -- "$@" | sed 's|^ *-- *||'
+}
+
+save_args_to(){
+    eval "$1"'="$(shift 1; getopt -o '"''"' -- -- "$@")"'
+}
+
+cat_functions(){
+    while test "$#" -ne 0; do
+	declare -f "$1" | awk '(NR==1){gsub(/ *\(\) *$/,"()")}{print}'
+	shift 1
+    done
+}
+
+
+# -------------------------------------------------------------------
+# temporary files
+# -------------------------------------------------------------------
+
+TEMPFILES=""
+
+newtmpfiles(){
+    while test "$#" -gt 0; do
+	eval "$1"'="$(mktemp -t "$APPNAME.$MYPID.$1."XXXXXX)"'
+	eval 'TEMPFILES="$TEMPFILES '"'$1'"'"'
+	shift
+    done
+    
+    # TODO: Add smart exit handler(s) + cleanup XXX
+}
+
+
+# -------------------------------------------------------------------
+
+AWK_CORE_LIBRARY='
+
+       BEGIN{
+	 ERRORCHANNEL="cat>&2"
+       }
+
+       function panic(txt){
+	 print APPNAME ": " txt | ERRORCHANNEL;
+	 exit(1);
+
+       }
+
+       BEGIN{
+         if (!APPNAME) APPNAME="'"$APPNAME"'";
+         if (!APPNAME) panic("INTERNAL ERROR: APPNAME missing");
+       }
+
+'
+
+
+# -------------------------------------------------------------------
+#
+#   path + file name manipulations
+#
+# -------------------------------------------------------------------
+
+
+realpath(){                   # poor mans portable realpath()
+    if test -d "$1"; then
+	( cd $1 && /bin/pwd ) | awk '{ printf "%s\n",$0 }'
+    else
+	{ ( cd "$(dirname "$1")" && /bin/pwd ) | awk '{ printf "%s/",$0 }' 
+	} && basename "$1"	
+    fi
+}
+
+
+
+
+# -------------------------------------------------------------------
+#
+#   path searching
+#
+# -------------------------------------------------------------------
+
+
+path_search_(){
+
+    T_SEARCHED_TYPE="$1"
+    T_SEARCHED_OBJ="$2"
+    shift 2
+
+    for T_PATH in "$@"; do
+	if test "$T_SEARCHED_TYPE" "$T_PATH"/"$T_SEARCHED_OBJ"; then
+	    T_FOUND_OBJ="$T_PATH"/"$T_SEARCHED_OBJ"; return 0
+        fi
+    done
+    return 1
+}
+
+path_search(){
+    path_search_ "$@"
+    if test "$?" -gt 0; then
+       return 1
+    else
+       echo "$T_FOUND_OBJ"
+    fi
+}
+
+path_search_classic(){
+    case "$2" in
+	*/*) if test "$1" "$2"; then echo "$2"; else return 1; fi
+             ;;
+          *) path_search "$@" 
+             ;;
+    esac
+}
+
+split_path(){
+    
+    # USAGE: eval set -- $(split_path "$SOMEPATH" "$OPTIONAL_SEPARATOR")
+    #        
+    #        e.g.:  eval set -- $(split_path comp.lang.ada .)
+    #               eval set -- $(split_path /bin:/usr/bin:/usr/local/bin :)
+
+    echo "$1" | awk  -vFS="${2:-:}" '
+
+	{ for (i=1;i<=NF;i++) {
+              F = $i;
+	      gsub("['"'"']","'"'"'\"'"'"'\"'"'"'",F)
+	      printf "'"'"'%s'"'"' ",F; 
+	  } 
+	  print ""
+        }
+     '
+}
+
+path_to_unsearched(){     #    XXX this is absolute_from_path?
+    case "$1" in
+	'')  return 1;;
+	*/*) echo "$1";;
+	*)   echo "$(/bin/pwd)/$1";;
+    esac
+}
+
+pathvar_to_unsearched(){
+    eval "$1="'$(path_to_unsearchable "$'"$1"'")'
+}
+
+
+# -------------------------------------------------------------------
+
+. lsdtools-datatypes.shlib
+
+# XXX needs a bit of reworking - sorry XXXXXXXXx
+
+
+# list_new(){
+#     eval "$1"'="--"'    
+# }
+
+# list_append(){
+#     eval 'T_LIST_CONTENT="$'"$1"'"'
+#     eval "$1"'="$(shift; getopt -o' ' '"$T_LIST_CONTENT"'  "$@")"'
+
+#     # | sed 's|'"'"'|'"'"'"'"'"'"'"'"'|g')""'" als fallback?
+#     there_is_a_bug_here
+# }
+
+
+
+# list_set(){
+#     list_new     "$1"
+#     list_append  "$@"
+# }
+
+# list_shift(){
+#     T_LIST_NAME="$1"
+#     T_LIST_SHIFT="$2"
+#     eval 'eval set "$'$1'"'
+#     shift "$T_LIST_SHIFT"
+#     list_set "$T_LIST_NAME" "$@"
+# }
+
+list_new(){ list_init "$@"; }
+
+# -----------------------------------------------------
+
+list_path_search(){
+    
+    # e.g.  list_path_search -f ls PATH
+    
+    # $1 - type of object to be searched
+    # $2 - object name
+    # $3 - list with search paths
+
+    T_SEARCHED_TYPE="$1"
+    T_SEARCHED_OBJ="$2"
+
+    eval 'eval set "$'"$3"'"'
+
+    path_search "$T_SEARCHED_TYPE" "$T_SEARCHED_OBJ" "$@"
+}
+
+list_path_search_(){
+    
+    # e.g.  list_path_search -f ls PATH
+    
+    # $1 - type of object to be searched
+    # $2 - object name
+    # $3 - list with search paths
+
+    T_SEARCHED_TYPE="$1"
+    T_SEARCHED_OBJ="$2"
+
+    eval 'eval set "$'"$3"'"'
+
+    path_search_ "$T_SEARCHED_TYPE" "$T_SEARCHED_OBJ" "$@"
+}
+
+# -------------------------------------------------------------------
+
+date_stamp(){
+    date -Is |  sed 's|[+].*||;s|:|-|g;s|T|_|'
+}
+
+where_stamp(){
+    echo "$USER-AT-$(hostname -f)"
+}
+
+spacetime_stamp(){
+    echo "$(where_stamp)_$(date_stamp)"
+}
+
+
+# -------------------------------------------------------------------
+
+
+

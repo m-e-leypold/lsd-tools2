@@ -1,0 +1,98 @@
+<#-  
+ #   libCX -- (abstract) data type source library for C.
+ #
+ #   Copyright (C) 2006,2007  M E Leypold, Software-Dienstleistungen und Beratung
+ #
+ #   This program is free software; you can redistribute it and/or
+ #   modify it under the terms of the GNU General Public License
+ #   version 2 as published by the Free Software Foundation (no later
+ #   version).
+ #
+ #   This program is distributed in the hope that it will be useful,
+ #   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ #   General Public License for more details.
+ #
+ #   You should have received a copy of the GNU General Public License
+ #   along with this program; if not, write to the Free Software
+ #   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ #   02110-1301 USA.
+     
+ #   fifo.Gh - Generic fifo interface.
+
+#>
+
+<#- GENERIC interface ## UNUSED at the moment ...
+    
+    identifier  T  -is typename 
+    identifier eT  -is element_type
+ 
+    support_namespace
+#>
+
+
+#ifndef H_INCLUDED_<<_INSTANCE_>>
+#define H_INCLUDED_<<_INSTANCE_>>
+/*
+ *   libCX -- data type source library for C
+ *
+ *   Copyright (C) 2006,2007  M E Leypold, Software-Dienstleistungen und Beratung
+ *
+ *   This program is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU General Public License
+ *   version 2 as published by the Free Software Foundation (no later
+ *   version).
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ *   02110-1301 USA.
+ *
+ *   <<_GENERIX_TARGET_>> -- instance of fifo.Gh (generic fifo)
+ */
+
+#include "fifo.h"
+
+<#- 
+    Some useful commentary, just to demonstrate ...
+#>
+
+#define <<>>MAXLEN   <<MAXLEN>>
+#define <<>>MAXINDEX (<<>>MAXLEN)
+
+typedef struct <<T>> {
+  
+  <<eT>>* write_p;  /* last element written */
+  <<eT>>* read_p;   /* last element read    */
+
+  <<eT>> buffer[<<>>MAXINDEX];
+
+} <<T>>;
+
+/* NOTE: The fifo length (which can be queried with <<>>len) is just
+   one element _less_ than the buffer array for the reasons given
+   below. Therefore <<>>MAXINDEX must be <<>>MAXLEN.
+
+   The maximum fifo length is one less than the buffer length, because
+   the fifo empty condition is recognized by write_p == read_p. This
+   means that we cannot write the last free buffer slot, because then
+   we'd catch up to the read pointer again and the buffer full
+   condition would be indistinguishable from the buffer empty
+   condition. (Essentially we have only <<>>MAXINDEX buffer states,
+   one of them is buffer empty, the others are '1 element', '2
+   elements' up to 'buffer full' which therefore must be a state with
+   <<>>MAXINDEX elements in the fifo). Therefore the buffer full
+   condition must be write_p == read_p - 1 (modulo wrap around).
+*/
+
+void   <<>>init ( <<T>>* f );
+<<eT>> <<>>get  ( <<T>>* f );
+void   <<>>put  ( <<T>>* f, <<eT>> e );
+int    <<>>len  ( <<T>>* f );
+
+#endif

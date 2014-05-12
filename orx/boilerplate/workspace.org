@@ -1,0 +1,85 @@
+* -*- mode:org; eval:(org-indent-mode 1); eval: (visual-line-mode); -*-
+
+#+TEMPLATE-ARG: HIVE         ? 
+#+TEMPLATE-ARG: PRJ-NAME     ?
+#+TEMPLATE-ARG: PRJ-SHORTCUT ?
+
+#+SETUPFILE:   ~/.orx/orx/keywords.org
+#+STARTUP:     oddeven
+
+#+TITLE:       [PRJ-NAME] Workspace
+#+ABOUT:       Workspace for [PRJ-NAME] projects
+
+#+CATEGORY:    [PRJ-SHORTCUT]
+#+FILETAGS:    [HIVE] [PRJ-SHORTCUT] _WS
+
+#+ROLE:        workspace
+#+PROCESS:     [PRJ-SHORTCUT]/
+
+#+ATTACH_DIR:         ~/.files/hives/[HIVE]/projects/[PRJ-SHORTCUT]/
+#+ATTACH_DIR_INHERIT: t
+#+ARCHIVE:            [PRJ-SHORTCUT]/ARCHIVE.org::* INCOMING
+
+
+:BOILERPLATE:
+
+This is the preliminary boilerplate for an orx workspace (whatever this is - I've not
+explained that yet). Delete this note and any other :BOILERPLATE: notes after creating a
+workspace file from this template.
+
+There are 3 parameters that need to be replaced:
+
+- PRJ-NAME: Every project has a "long" name, like "Frobnicator Engineering Prototype" or
+  "Mercury 2000". This might be a code name.
+
+- PRJ-SHORTCUT: Every project (or project group) has an abbreviated symbol, a project
+  code. Examples: frob1, frob2, frobfin, merc2k. This might be an accounting code like
+  300-0616. 
+
+- HIVE: Every project takes place in some kind of context, respectively "area of live",
+  like "personal", "freelancing", "company". Every of those contexts usually corresponds
+  to on tree of orx notes, a so called "hive".
+
+The "PROCESS" (also known as "process space") in orx terminology) is a directory, where
+files are archived and TICKETs are stored (and so on). This directory need to to
+correspond 1:1 to a workspace. Instead some workspaces might refer to the same directory,
+e.g. workspaces submarine.org and abacand.org (both are systems in the labnet
+installation) have labnet/ as process space. Sometimes "PROCESS" is perhaps better called
+"portfolio" in proper PM speak , but orx as a tracking and controlling method is very
+pragmatic and does not impose many formal requirements. Whatever works.
+
+You might want to change PROCESS and then you also need to change ARCHIVE and perhaps
+ATTACH-DIR. Though ATTACH-DIR needs very probably set on a per case or per project basis
+(note that a workspace might contain more than one "project", though in proper PM speak
+those are perhaps only tasks or phases/milestones).
+
+You might also want to add a sub-target to ARCHIVE-DIR like
+
+: #+ARCHIVE: [PRJ-SHORTCUT]/ARCHIVE.org::* INCOMING [PRJ-SHORTCUT]
+
+As of [2014-05-01 Thu] the file path conventions have not been completely defined yet and
+some of them are outright flakey (like ~/.files/ above => ~/[HIVE]/.files or
+~/[HIVE]/FILES would simply be better). Therefore one should use the att-Protocol to
+address files/attachments, because then a change in file paths conventions will easily be
+fixed by fixing the ATTACH-DIR property.
+
+Some stuff in this template should better go into ~/.orx/orx/setup-oddeven.org or
+something like this. While We have still a lot of old format files (and amacs lisp)
+around, we try override explicitely in the setup section, but this will change (some
+time).
+
+The tag '_WS' is used within org to tag workspaces.
+
+:END:
+
+* ABOUT [PRJ-SHORTCUT].org => Workspace for [PRJ-NAME] projects
+
+:BOILERPLATE:
+
+Add some description and maybe policies here. This is completely optional, since much of
+the policy is hinted at by the global file properties. You might even delete the ABOUT
+line (this is actually suggested, if you have nothing to say here).
+
+:END:
+
+

@@ -1,0 +1,316 @@
+#
+#   libCX -- (abstract) data type source library for C.
+#
+#   Copyright (C) 2006,2007  M E Leypold, Software-Dienstleistungen und Beratung
+#
+#   This program is free software; you can redistribute it and/or
+#   modify it under the terms of the GNU General Public License
+#   version 2 as published by the Free Software Foundation (no later
+#   version).
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#   General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+#   02110-1301 USA.
+
+
+USAGE='
+
+  generix - Instantiate C generics.
+
+         (C) Copyright 2007 - 2008 M E Leypold, Software-Dienstleistungen 
+             und Beratung
+
+  usage: generix <options ...> instantiate <generix-definition>
+
+    instantiate         -- ...
+
+    print-dependencies  -- ...
+
+  See software.m-e-leypold.de for more information.
+'
+
+. lsdtools.shlib "$@"
+
+
+instance_of(){
+
+  GENERIC="$(path_to_unsearched "$(list_path_search -f "$1.G" SEARCH_PATH)" || panic "Can't find generic definition file: $1.G")"
+
+  . "$GENERIC"
+  
+  with(){
+      
+    # common test + processing procedures matches_name(), process_bindings()
+    # might also support -expr as value ..
+    # what about defaults? (that's difficult IMHO)
+
+    _matches_name(){
+       if test "$1" = "$PARAMETER_NAME"; then
+          $DBG "match found: '$1' (value: '$PARAMETER_VALUE')" ; 
+	  return 0;
+       fi
+       return 1;
+    }
+
+    _add_binding(){
+	$DBG "adding binding '$1' => $2"
+	ARGS="$ARGS -D'$1'='$2'"
+    }
+
+
+    _process_bindings(){
+        shift
+	if test "$#" -eq 0; then 
+	   _add_binding "$PARAMETER_NAME" "$PARAMETER_VALUE"
+        else
+           _process_aliases "$@"
+        fi
+    }
+
+    _process_aliases(){
+       	while test "$#" -gt 0; do
+	    case "$1" in 	
+		--replace | -replace | -r) 
+                    shift;
+                    # XXX ... error handling # XXX Was soll das?
+                    _add_binding "$1" "$PARAMETER_VALUE"
+                    shift 1 
+		    ;;
+                *)  shift # XXX SYNTAX error
+                    ;;
+	    esac
+	done
+    }
+
+    # ----------------
+
+    support_namespace(){
+       identifier '' "$@"
+    }
+
+    identifier(){
+	if _matches_name "$1"; then           
+	   _process_bindings "$@"
+        fi
+    }
+
+    # text(){ ... }
+    # string(){ ... }
+    # scalar(){ ... }
+
+    PARAMETER_NAME="$1"; PARAMETER_VALUE="$2";
+    parameters
+  }
+
+  namespace(){
+    if test "$#" -lt 1; then
+       with '' "${INSTANCE}_"
+    else
+       with '' "$1"
+    fi
+  }
+}
+
+
+
+expand_files(){
+
+    expand(){
+
+        # expand $1 to $2 with the current ARGS (definitions) list (if not $DEPMODE)
+
+        TEMPLATE="$(list_path_search -f "$1" SEARCH_PATH)" || panic "Can't find input file: $1" 
+
+	if ! "$DEPMODE"; then
+
+	   $DBG \
+	     'running: stx -G '"$ARGS"\
+	     '-D'"'"'_GENERIX_SOURCE_'"'"'="'"$TEMPLATE"'" -D'"'"'_GENERIX_TARGET_'"'"'="'"$2"'" "'"$TEMPLATE"'" >"'"$2"'"'
+
+	   eval stx -G "$ARGS" -D'_GENERIX_SOURCE_'="$TEMPLATE" -D'_GENERIX_TARGET_'="$2" "$TEMPLATE" >$2
+	   if test "$?" -gt 0; then 
+	      rm -f "$2";
+	      panic "Expanding '$TEMPLATE' to '$2' failed"
+	   fi	  
+        fi
+        INPUTFILES="$INPUTFILES $TEMPLATE"
+        OUTPUTFILES="$OUTPUTFILES $2"
+	EXPANSIONS="$EXPANSIONS $1=>$2"
+	if test -z "$FIRSTOUTPUT"; then
+           FIRSTOUTPUT="$2"
+        else
+           MOREOUTPUT="$MOREOUTPUT $2"
+        fi
+    }
+
+    header(){	
+
+	# XXX handling: double headers are not allowed, handle this!
+
+	TEMPLATE="$1"
+	OUTPUT_FILE="${2:-$OUTPUT.h}"
+
+	_add_binding _INSTANCE_H_ "$(basename "$OUTPUT_FILE")"
+	_add_binding _INSTANCE_HEADER_ "$(basename "$OUTPUT_FILE")"
+
+	# XXX there should be a possibilty to add a path prefix to
+        # _INSTANCE_H_ in the instance definition *.M
+
+	expand "$TEMPLATE" "$OUTPUT_FILE"
+    }
+
+    body(){
+
+	# XXX handling: double bodies are not allowed => need to be mapped as others
+
+	TEMPLATE="$1"
+	OUTPUT_FILE="${2:-$OUTPUT.c}"
+
+	_add_binding _INSTANCE_C_ "$OUTPUT_FILE"
+	_add_binding _INSTANCE_BODY_ "$OUTPUT_FILE"
+
+	expand "$TEMPLATE" "$OUTPUT_FILE"
+    }
+
+    other(){
+
+	# XXX add intelligent defaults?
+
+	if test "$#" -lt 2; then panic "need explicit output name in other $*"; fi
+
+	TEMPLATE="$1"
+	OUTPUT_FILE="$2"
+
+	expand "$TEMPLATE" "$OUTPUT_FILE"
+    }
+
+    # XXX maybe add makefile directive here ...
+
+    generic_parts
+}
+
+
+
+
+
+process_args(){
+     
+    list_new SEARCH_PATH
+
+    while test "$#" -gt 0; do
+	case "$1" in
+            -I | --search-path )   check_argc 2 ... "$@"; shift; list_append SEARCH_PATH "$1"; shift;;
+	    --output | -o )        check_argc 2 ... "$@"; OUTPUT="$2"; shift 2;;
+            --template | -t )      check_argc 2 ... "$@"; DEPS_TEMPLATE="$2"; shift 2;;
+            --template-file | -T ) check_argc 2 ... "$@"; 
+                                   if ! test -f "$2"; then panic "no template file: $2"; fi;
+                                   DEPS_TEMPLATE="$(cat $2)"; shift 2;;
+ 	    -*)                    usage_error "unknown option(s): $*";;            
+ 	    *)                     break;;
+	esac
+    done
+
+    check_argc 1 1 "$@"
+    INSTANCE="$(basename $1 .M)"
+    if test -z "$OUTPUT"; then
+       OUTPUT="$INSTANCE"
+    fi
+
+    INPUT="$(path_to_unsearched "$1")"
+
+    if ! test -f "$INPUT"; then panic "input file not found: $INPUT."; fi
+}
+
+instantiate(){
+    process_args "$@"
+
+    . "$INPUT"
+
+    _add_binding "_INSTANCE_" "$INSTANCE"    
+    DEPMODE=false expand_files
+}
+
+
+print_dependencies(){
+    process_args "$@"
+
+    . "$INPUT"
+
+    _add_binding "_INSTANCE_" "$INSTANCE" 
+
+    DEPMODE=true expand_files
+
+    cleanupspaces(){ echo $*;    }
+    printpath(){ eval set $*; echo $*; }
+
+    echo "$DEPS_TEMPLATE" \
+    | stx -D PRODUCTS="$(cleanupspaces $OUTPUTFILES)"                       \
+          -D TEMPLATES="$(cleanupspaces $INPUTFILES)"                       \
+	  -D GENERIX-DEFINITION="$INPUT"                                         \
+	  -D GENERIX-OUTPUT="$OUTPUT"                                            \
+	  -D GENERIC="$GENERIC"                                                  \
+	  -D GENERIX-EXPANSIONS="$(cleanupspaces $EXPANSIONS)"                   \
+	  -D PRIMARY-PRODUCT="$FIRSTOUTPUT"                                      \
+          -D SECONDARY-PRODUCTS="$( cleanupspaces $MOREOUTPUT )"                 \
+          -D GENERIX-INCLUDE-PATH="$( printpath $SEARCH_PATH )"
+
+}
+
+
+DEPS_TEMPLATE='
+
+GENERIX-PRODUCTS             += <#PRODUCTS#>
+GENERIX-TEMPLATES            += <#TEMPLATES#>
+GENERIX-INSTANCE-DEFINITIONS += <#GENERIX-DEFINITION#>
+GENERIX-DEFINITIONS          += <#GENERIC#>
+
+<#PRIMARY-PRODUCT#>: GENERIX-INCLUDE-PATH := <#GENERIX-INCLUDE-PATH#>
+<#PRIMARY-PRODUCT#>: INSTANCE := <#GENERIX-OUTPUT#>
+<#PRIMARY-PRODUCT#>: <#GENERIX-DEFINITION#> <#TEMPLATES#>
+	$(GENERIX-INSTANTIATE)
+
+<#SECONDARY-PRODUCTS#>: %: <#PRIMARY-PRODUCT#>
+	$(!TOUCH)
+'
+
+REPORT_TEMPLATE='
+
+Definition: <#GENERIX-DEFINITION#>
+-----------
+Generic:    <#GENERIC#>
+Products:   <#PRODUCTS#>
+Templates:  <#TEMPLATES#>
+Expansions: <#GENERIX-EXPANSIONS#>
+
+'
+
+if test "$#" -lt 1; then usage_error "missing command action."; fi
+
+while test "$#" -gt 0; do
+
+    case "$1" in
+
+ 	instantiate        | i    )  check_argc 2 ... "$@"; shift; instantiate        "$@"; exit;;
+ 	print-dependencies | pd   )  check_argc 2 ... "$@"; shift; print_dependencies "$@"; exit;;
+ 	show-expansions    | sh   )  DEPS_TEMPLATE="$REPORT_TEMPLATE"; check_argc 2 ... "$@"; shift; print_dependencies "$@"; exit;;
+
+        --debug   | -d )       set_DBG; shift;;
+	--help    | -h | '-?') usage; break;;
+
+ 	-*)                 usage_error "unknown option(s): $*";;
+ 	*)                  usage_error "unknown command(s): $*";;
+    esac
+done
+
+
+
+# TODO: error handling in most procedures
+#       useful defaults
+#       dependency printing
+#       useful handling of search paths
